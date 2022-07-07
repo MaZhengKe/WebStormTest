@@ -1,45 +1,78 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
     mode: 'development',
     entry: {
-        app: './src/index/index.js',
-        print: './src/index/print.js'
+        app: './src/js/index.js',
+        print: './src/js/print.js',
+        testThreejs: './src/js/TestThreeJS.js'
     },
+
     devtool: 'inline-source-map',
+
     devServer: {
         static: './dist',
         openPage: 'index.html',
         port: 4000
     },
+
     plugins: [
+        new CopyPlugin({
+            patterns: [{
+                from: './assets',
+                to: "assets",
+            }]
+        }),
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             filename: "index.html",
             template: "./src/index/index.html",
-            title: 'Output Management'
+            title: 'Output Management',
+            chunks: ['app', 'print']
         }),
         new HtmlWebpackPlugin({
             filename: "about.html",
             template: "./src/about/about.html",
             chunks: []
         }),
+        new HtmlWebpackPlugin({
+            filename: "three.html",
+            template: "./src/threejs/threejs.html",
+            chunks: ['testThreejs']
+        }),
 
     ],
     output: {
         filename: '[name].bundle.js',
         path: path.resolve(__dirname, 'dist'),
-        publicPath: "/"
-    },
+    }
+    ,
     module: {
         rules: [{
             test: /\.css$/,
             use: ['style-loader', 'css-loader']
         }, {
+            test: /\.(hdr|gltf)$/,
+            include: /assets/,
+            use: [{
+                loader: 'file-loader',
+                options: {
+                    name: '[path][name].[ext]'
+                }
+            }],
+        }, {
             test: /\.(png|svg|jpg|gif)$/,
-            use: ['file-loader']
+            use: [{
+                loader: 'file-loader',
+
+                options: {
+                    name: '[name].[ext]',
+                }
+            }]
         }]
     }
-};
+}
+;

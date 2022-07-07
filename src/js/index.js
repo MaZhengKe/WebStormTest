@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import './style.css'
-import Icon from './C.png'
+import '../css/style.css'
+import Icon from '/assets/C.png'
 
 import printMe from "./print";
 
@@ -19,7 +19,7 @@ function component() {
     var myIcon = new Image();
     myIcon.src = Icon;
 
-    // element.appendChild(myIcon);
+    element.appendChild(myIcon);
 
     element.appendChild(btn);
     return element;
