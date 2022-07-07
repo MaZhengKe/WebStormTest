@@ -537,7 +537,6 @@ class OrbitControls extends EventDispatcher {
 
             rotateLeft( -2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
 
-            console.log("aaa")
             rotateUp( -2 * Math.PI * rotateDelta.y / element.clientHeight );
 
             rotateStart.copy( rotateEnd );
