@@ -66,6 +66,7 @@ function onWindowResize() {
 }
 
 function render() {
+    console.log(camera.rotation)
     //requestAnimationFrame(render);
     renderer.render(scene, camera);
 };

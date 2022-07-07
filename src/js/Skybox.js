@@ -1,12 +1,13 @@
 import * as THREE from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {OrbitControls,MapControls} from './MyControls';
 import {RGBELoader} from "three/examples/jsm/loaders/RGBELoader";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 import skyTexture from '/assets/textures/royal_esplanade_1k.hdr'
 import DamagedHelmetPath from '/assets/gltf/DamagedHelmet/DamagedHelmet.gltf'
+import {greaterThan} from "three/examples/jsm/nodes/shadernode/ShaderNodeBaseElements";
 
-let mesh, renderer, scene, camera, cube;
+let SkyMesh, renderer, scene, camera, cube;
 let ind = 0;
 init();
 
@@ -27,12 +28,16 @@ function init() {
 
     // camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 0.01;
+    camera.rotation.value = new THREE.Euler(0,0,0);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.addEventListener('change', render);
-    controls.minDistance = 1;
+    controls.minDistance = 0;
     controls.maxDistance = 200;
     controls.enablePan = false;
+    controls.rotateSpeed = 0.2;
+    controls.enableZoom = false;
     controls.target.set(0, 0, 0);
     controls.update();
 
@@ -42,30 +47,55 @@ function init() {
     // invert the geometry on the x-axis so that all of the faces point inward
     geometry.scale(- 1, 1, 1);
 
-    const SkyTexture = new THREE.TextureLoader().load('/assets/textures/360.jpeg',()=>{
+    const SkyTexture = new THREE.TextureLoader().load('/assets/textures/custom-skyboxes-img-01.jpeg',()=>{
         render();
     });
+
     const material = new THREE.MeshBasicMaterial({ map: SkyTexture });
-    mesh = new THREE.Mesh(geometry, material);
-    mesh.position = camera.position;
-    scene.add( mesh );
+    SkyMesh = new THREE.Mesh(geometry, material);
+
+
+
+    const planeGeo = new THREE.PlaneGeometry(10,10);
+    const planeMat = new THREE.MeshBasicMaterial({ color: 0x002000 , alpha : 0.2});
+
+    const ground = new THREE.Mesh(planeGeo,planeMat);
+
+    ground.rotateX(-3.1415926/2);
+    // ground.rotateZ(0.2);
+    ground.position.y = -1;
+
+    // scene.add(ground);
+
+
+    const cubeGeo = new THREE.BoxGeometry(0.5,0.5,0.5);
+
+    const cube = new THREE.Mesh(cubeGeo,planeMat);
+    cube.position.x = 1;
+    cube.position.y = -1;
+    cube.position.z = 1;
+    scene.add(cube);
+    scene.add( SkyMesh );
     render();
-    function onWindowResize() {
+}
 
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+function onWindowResize() {
 
-        renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
 
-        render();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
-    }
+    render();
 
-    function render() {
+}
 
-        mesh.position.x += 0.01;
-        mesh.position.y += 0.01;
-        //mesh.rotation = camera.position;
-        renderer.render(scene, camera);
-    }
+function render() {
+    SkyMesh.position.x = camera.position.x;
+    SkyMesh.position.y = camera.position.y;
+    SkyMesh.position.z = camera.position.z;
+
+    console.log(SkyMesh.position)
+    console.log(camera.position)
+    renderer.render(scene, camera);
 }
