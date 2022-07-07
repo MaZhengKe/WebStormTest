@@ -7,11 +7,14 @@ import skyTexture from '/assets/textures/royal_esplanade_1k.hdr'
 import DamagedHelmetPath from '/assets/gltf/DamagedHelmet/DamagedHelmet.gltf'
 import {greaterThan} from "three/examples/jsm/nodes/shadernode/ShaderNodeBaseElements";
 import {DragControls} from "./MYDragControls";
+import {Vector3} from "three";
+import {vector} from "three/examples/jsm/nodes/core/NodeBuilder";
 
 let SkyMesh, renderer, scene, camera, cube;
 let ind = 0;
 init();
 
+let  gltfscene  = null;
 function init() {
     // renderer
     renderer = new THREE.WebGLRenderer({antialias: true});
@@ -52,7 +55,7 @@ function init() {
     geometry.scale(-1, 1, 1);
 
     const SkyTexture = new THREE.TextureLoader().load('/assets/textures/custom-skyboxes-img-01.jpeg', () => {
-        render();
+
     });
 
     const material = new THREE.MeshBasicMaterial({map: SkyTexture});
@@ -73,18 +76,44 @@ function init() {
 
     const cubeGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 
-    const cube = new THREE.Mesh(cubeGeo, planeMat);
-    cube.position.x = 1;
-    cube.position.y = -1;
-    cube.position.z = 1;
+    cube = new THREE.Mesh(cubeGeo, planeMat);
+
+
+    cube.position.copy(new Vector3( -1.9223491145264011, -0.20982945849902454,0.9106574124212634))
+    cube.rotateY( 2.6400000000000)
+    cube.scale.copy(new Vector3(0.18644382951210073,0.18644382951210073,0.18644382951210073))
+
     scene.add(cube);
     scene.add(SkyMesh);
 
+    new RGBELoader().load(skyTexture, function (texture) {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            scene.background = texture;
+            scene.environment = texture;
+            render();
+        }
+    )
+
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load(DamagedHelmetPath, function (gltf) {
+
+        scene.add(gltf.scene);
+
+        gltfscene = gltf.scene;
+        gltfscene.parent = cube;
+        onWindowResize();
+        render();
+    });
     const dcontrols = new DragControls([cube], camera, renderer.domElement);
+
+
+    dcontrols.addEventListener('click', function (event) {
+        console.log("click")
+        render();
+    });
 
     dcontrols.addEventListener('drag', function (event) {
         render();
-
     });
 
 
@@ -101,7 +130,7 @@ function init() {
     });
 
 
-    render();
+    // render();
 }
 
 function onWindowResize() {
@@ -116,11 +145,16 @@ function onWindowResize() {
 }
 
 function render() {
-    SkyMesh.position.x = camera.position.x;
-    SkyMesh.position.y = camera.position.y;
-    SkyMesh.position.z = camera.position.z;
+
+    SkyMesh.position.copy(camera.position);
+
+    // console.log(cube.position)
+    // console.log(cube.rotation)
+    // console.log(cube.scale)
+
+
+    renderer.render(scene, camera);
 
     // console.log(SkyMesh.position)
     // console.log(camera.position)
-    renderer.render(scene, camera);
 }

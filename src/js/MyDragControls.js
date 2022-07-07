@@ -90,7 +90,6 @@ class DragControls extends EventDispatcher {
 
 
             scope.dispatchEvent({type: 'drag', object: _selected});
-
         }
 
 
