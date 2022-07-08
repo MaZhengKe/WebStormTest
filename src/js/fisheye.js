@@ -30,13 +30,14 @@ function init() {
     // tone mapping
     renderer.toneMapping = THREE.NoToneMapping;
 
+    // renderer.outputEncoding = THREE.LinearEncoding;
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     // scene
     scene = new THREE.Scene();
 
     // camera
-    camera = new THREE.PerspectiveCamera(100, renderCanvas.offsetWidth / renderCanvas.offsetHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(90, renderCanvas.offsetWidth / renderCanvas.offsetHeight, 0.1, 1000);
     camera.position.z = 0.01;
     camera.rotation.value = new THREE.Euler(0, 0, 0);
 
@@ -57,6 +58,9 @@ function init() {
     const SkyTexture = new THREE.TextureLoader().load('/assets/textures/custom-skyboxes-img-01.jpeg', () => {
 
     });
+
+    SkyTexture.wrapS =THREE.RepeatWrapping;
+    SkyTexture.wrapT =THREE.RepeatWrapping;
 
 
     const geometry = new THREE.BufferGeometry();
@@ -88,6 +92,7 @@ void main()	{
     uniforms = {
         iGlobalTime: { type: "f", value: 1.0 },
         iResolution: { type: "v3", value: new THREE.Vector3() },
+        texture1:{type : "t",value : SkyTexture},
         projectionMatrixInverse: { type: "mat4", value: camera.projectionMatrixInverse },
         viewMatrixInverse :  { type: "mat4", value:  camera.projectionMatrixInverse },
     };
