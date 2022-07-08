@@ -10,12 +10,14 @@ import {greaterThan} from "three/examples/jsm/nodes/shadernode/ShaderNodeBaseEle
 import {DragControls} from "./MYDragControls";
 import {Vector3} from "three";
 import {vector} from "three/examples/jsm/nodes/core/NodeBuilder";
+import {GUI} from "three/examples/jsm/libs/lil-gui.module.min";
 
-let SkyMesh, renderer, scene, camera, cube ,uniforms,renderCanvas;
+let SkyMesh, renderer, scene, camera, cube, uniforms, renderCanvas, settings;
 let ind = 0;
 init();
 
-let  gltfscene  = null;
+let gltfscene = null;
+
 function init() {
 
     renderCanvas = document.getElementById("renderCanvas")
@@ -59,8 +61,8 @@ function init() {
 
     });
 
-    SkyTexture.wrapS =THREE.RepeatWrapping;
-    SkyTexture.wrapT =THREE.RepeatWrapping;
+    SkyTexture.wrapS = THREE.RepeatWrapping;
+    SkyTexture.wrapT = THREE.RepeatWrapping;
 
 
     const geometry = new THREE.BufferGeometry();
@@ -90,11 +92,13 @@ void main()	{
 `;
 
     uniforms = {
-        iGlobalTime: { type: "f", value: 1.0 },
-        iResolution: { type: "v3", value: new THREE.Vector3() },
-        texture1:{type : "t",value : SkyTexture},
-        projectionMatrixInverse: { type: "mat4", value: camera.projectionMatrixInverse },
-        viewMatrixInverse :  { type: "mat4", value:  camera.projectionMatrixInverse },
+        iGlobalTime: {type: "f", value: 1.0},
+        value01: {type: "f", value: 1.0},
+        value02: {type: "f", value: 1.0},
+        iResolution: {type: "v3", value: new THREE.Vector3()},
+        texture1: {type: "t", value: SkyTexture},
+        projectionMatrixInverse: {type: "mat4", value: camera.projectionMatrixInverse},
+        viewMatrixInverse: {type: "mat4", value: camera.projectionMatrixInverse},
     };
 
     uniforms.iResolution.value.x = renderer.domElement.width;
@@ -121,9 +125,9 @@ void main()	{
 
     const cubeGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
     cube = new THREE.Mesh(cubeGeo, planeMat);
-    cube.position.copy(new Vector3( -1.9223491145264011, -0.20982945849902454,0.9106574124212634))
-    cube.rotateY( 2.6400000000000)
-    cube.scale.copy(new Vector3(0.18644382951210073,0.18644382951210073,0.18644382951210073))
+    cube.position.copy(new Vector3(-1.9223491145264011, -0.20982945849902454, 0.9106574124212634))
+    cube.rotateY(2.6400000000000)
+    cube.scale.copy(new Vector3(0.18644382951210073, 0.18644382951210073, 0.18644382951210073))
 
     scene.add(cube);
     scene.add(SkyMesh);
@@ -149,7 +153,7 @@ void main()	{
 
     const dcontrols = new DragControls([cube], camera, renderer.domElement);
 
-    renderer.domElement.onclick = ()=>{
+    renderer.domElement.onclick = () => {
         console.log("click")
     }
 
@@ -165,6 +169,56 @@ void main()	{
 
     });
 
+    const panel = new GUI({width: 310});
+
+    const folder3 = panel.addFolder('Visibility');
+
+
+    settings = {
+        'show model': true,
+        'show skeleton': false,
+        'modify step size': 0.05,
+        'from walk to idle': function () {
+
+            prepareCrossFade(walkAction, idleAction, 1.0);
+
+        },
+        'from idle to walk': function () {
+
+            prepareCrossFade(idleAction, walkAction, 0.5);
+
+        },
+        'from walk to run': function () {
+
+            prepareCrossFade(walkAction, runAction, 2.5);
+
+        },
+        'from run to walk': function () {
+
+            prepareCrossFade(runAction, walkAction, 5.0);
+
+        },
+        'use default duration': true,
+        'set custom duration': 3.5,
+        'modify idle weight': 0.0,
+        'modify walk weight': 1.0,
+        'modify run weight': 0.0,
+        'modify time scale': 1.0,
+        'value01': 1.0,
+        'value02': 1.0,
+    };
+
+    folder3.add(settings, 'value01', 0.01, 10, 0.001).listen().onChange(function (weight) {
+        console.log(weight);
+            uniforms.value01.value = weight
+        }
+    );
+    folder3.add(settings, 'value02', 0.01, 10, 0.001).listen().onChange(function (weight) {
+        console.log(weight);
+            uniforms.value02.value = weight
+        }
+    );
+
 
     // render();
 }
@@ -176,13 +230,13 @@ function onWindowResize() {
 
     renderer.setSize(renderCanvas.offsetWidth, renderCanvas.offsetHeight);
 
-     render();
+    render();
 
 }
 
 function render() {
 
-    requestAnimationFrame( render );
+    requestAnimationFrame(render);
     uniforms.viewMatrixInverse.value = camera.matrixWorldInverse
     SkyMesh.position.copy(camera.position);
 

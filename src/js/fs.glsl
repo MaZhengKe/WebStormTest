@@ -9,6 +9,8 @@ uniform mat4 viewMatrix;
 uniform mat4 viewMatrixInverse;
 uniform mat4 projectionMatrix;
 uniform mat4 projectionMatrixInverse;
+uniform float value01;
+uniform float value02;
 
 uniform vec3      iResolution;
 
@@ -26,7 +28,7 @@ vec2 mapDirToUV(vec3 direction){
 }
 float map(float x){
 //    return x;
-    return x + pow(x,3.0);
+    return x +value01* pow(x,value02);
     //    if(len<0.5)
     //        return len;
     //    return  (len - 0.5)*3.0+0.5;
