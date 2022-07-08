@@ -9,7 +9,8 @@ module.exports = {
         app: './src/js/index.js',
         print: './src/js/print.js',
         testThreejs: './src/js/TestThreeJS.js',
-        skybox:'./src/js/Skybox.js'
+        skybox:'./src/js/Skybox.js',
+        fisheye:'./src/js/fisheye.js'
     },
 
     devtool: 'inline-source-map',
@@ -48,6 +49,11 @@ module.exports = {
             filename: "skybox.html",
             template: "./src/threejs/threejs.html",
             chunks: ['skybox']
+        }),
+        new HtmlWebpackPlugin({
+            filename: "fisheye.html",
+            template: "./src/threejs/Skybox.html",
+            chunks: ['fisheye']
         }),
 
     ],

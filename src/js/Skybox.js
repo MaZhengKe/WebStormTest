@@ -16,6 +16,11 @@ init();
 
 let  gltfscene  = null;
 function init() {
+
+    let video = document.getElementById( 'videoId' );
+    video.play();
+
+    let videoTexture = new THREE.VideoTexture( video );
     // renderer
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -31,19 +36,17 @@ function init() {
     scene = new THREE.Scene();
 
     // camera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 0.01;
     camera.rotation.value = new THREE.Euler(0, 0, 0);
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.addEventListener('change', render);
     controls.minDistance = 0;
     controls.maxDistance = 200;
     controls.enablePan = false;
     controls.rotateSpeed = 0.2;
     controls.enableZoom = false;
     controls.target.set(0, 0, 0);
-    controls.update();
 
 // // add event listener to highlight dragged objects
 //
@@ -58,7 +61,7 @@ function init() {
 
     });
 
-    const material = new THREE.MeshBasicMaterial({map: SkyTexture});
+    const material = new THREE.MeshBasicMaterial({map: videoTexture});
     SkyMesh = new THREE.Mesh(geometry, material);
 
 
@@ -90,7 +93,7 @@ function init() {
             texture.mapping = THREE.EquirectangularReflectionMapping;
             scene.background = texture;
             scene.environment = texture;
-            render();
+            // render();
         }
     )
 
@@ -102,19 +105,24 @@ function init() {
         gltfscene = gltf.scene;
         gltfscene.parent = cube;
         onWindowResize();
-        render();
+        // render();
     });
+
     const dcontrols = new DragControls([cube], camera, renderer.domElement);
 
-
-    dcontrols.addEventListener('click', function (event) {
+    renderer.domElement.onclick = ()=>{
         console.log("click")
-        render();
-    });
+    }
 
-    dcontrols.addEventListener('drag', function (event) {
-        render();
-    });
+
+    // dcontrols.addEventListener('click', function (event) {
+    //     console.log("click")
+    //     render();
+    // });
+    //
+    // dcontrols.addEventListener('drag', function (event) {
+    //     render();
+    // });
 
 
     dcontrols.addEventListener('dragstart', function (event) {
@@ -140,12 +148,13 @@ function onWindowResize() {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    render();
+     render();
 
 }
 
 function render() {
 
+    requestAnimationFrame( render );
     SkyMesh.position.copy(camera.position);
 
     // console.log(cube.position)

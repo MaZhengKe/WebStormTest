@@ -5,6 +5,20 @@
     <title>Title</title>
 </head>
 <body>
+<div>
+    <video autoplay
+           controls
+           id='videoId'
+           onclick="change_start_pause"
+           onerror='errorCallback'
+           onseeked='seekedCallback'
+           onseeking='seekingCallback'
+           ontimeupdate='timeupdateCallback'
+           src='/assets/test.mp4'
+           style="object-fit:fill;width: 100%;height: 40%; "
+    ></video>
+</div>
+
 asdf
 Test Temp
 
