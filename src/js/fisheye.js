@@ -3,6 +3,7 @@ import {OrbitControls, MapControls} from './MyControls';
 import {RGBELoader} from "three/examples/jsm/loaders/RGBELoader";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
+import fs from './fs.glsl'
 import skyTexture from '/assets/textures/royal_esplanade_1k.hdr'
 import DamagedHelmetPath from '/assets/gltf/DamagedHelmet/DamagedHelmet.gltf'
 import {greaterThan} from "three/examples/jsm/nodes/shadernode/ShaderNodeBaseElements";
@@ -10,18 +11,21 @@ import {DragControls} from "./MYDragControls";
 import {Vector3} from "three";
 import {vector} from "three/examples/jsm/nodes/core/NodeBuilder";
 
-let SkyMesh, renderer, scene, camera, cube;
+let SkyMesh, renderer, scene, camera, cube ,uniforms,renderCanvas;
 let ind = 0;
 init();
 
 let  gltfscene  = null;
 function init() {
 
+    renderCanvas = document.getElementById("renderCanvas")
+
+
     // renderer
     renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+    renderer.setPixelRatio(renderCanvas.devicePixelRatio);
+    renderer.setSize(renderCanvas.offsetWidth, renderCanvas.offsetHeight);
+    renderCanvas.appendChild(renderer.domElement);
 
     // tone mapping
     renderer.toneMapping = THREE.NoToneMapping;
@@ -32,7 +36,7 @@ function init() {
     scene = new THREE.Scene();
 
     // camera
-    camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(100, renderCanvas.offsetWidth / renderCanvas.offsetHeight, 0.1, 1000);
     camera.position.z = 0.01;
     camera.rotation.value = new THREE.Euler(0, 0, 0);
 
@@ -46,49 +50,72 @@ function init() {
 
     window.addEventListener('resize', onWindowResize);
 
-    const geometry = new THREE.SphereGeometry(500, 60, 40);
-    // invert the geometry on the x-axis so that all of the faces point inward
-    geometry.scale(-1, 1, 1);
+    // const geometry = new THREE.SphereGeometry(500, 60, 40);
+    // // invert the geometry on the x-axis so that all of the faces point inward
+    // geometry.scale(-1, 1, 1);
 
     const SkyTexture = new THREE.TextureLoader().load('/assets/textures/custom-skyboxes-img-01.jpeg', () => {
 
     });
 
 
+    const geometry = new THREE.BufferGeometry();
+    const vertices = new Float32Array([
+        -1, -1, 0,
+        1, -1, 0,
+        -1, 1, 0,
 
+        -1, 1, 0,
+        1, -1, 0,
+        1, 1, 0]);
+    geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
 
+    const vs = `
+    
+    uniform mat4 modelViewMatrix;
+    uniform mat4 projectionMatrix;
+    
+attribute vec4 position;
+void main()	{
 
+                vec4 Hs = vec4(1,1,0.5,1);
+                Hs*= projectionMatrix;
+                
+  gl_Position = position;
+}
+`;
 
+    uniforms = {
+        iGlobalTime: { type: "f", value: 1.0 },
+        iResolution: { type: "v3", value: new THREE.Vector3() },
+        projectionMatrixInverse: { type: "mat4", value: camera.projectionMatrixInverse },
+        viewMatrixInverse :  { type: "mat4", value:  camera.projectionMatrixInverse },
+    };
 
+    uniforms.iResolution.value.x = renderer.domElement.width;
+    uniforms.iResolution.value.y = renderer.domElement.height;
 
+    const material = new THREE.RawShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vs,
+        fragmentShader: fs,
+        // blending : THREE.AdditiveBlending
+    });
 
-
-
-
-
-
-
-    const material = new THREE.MeshBasicMaterial({map: SkyTexture});
+    // const material = new THREE.MeshBasicMaterial({map: SkyTexture});
     SkyMesh = new THREE.Mesh(geometry, material);
 
 
     const planeGeo = new THREE.PlaneGeometry(10, 10);
     const planeMat = new THREE.MeshBasicMaterial({color: 0x002000, alpha: 0.2});
-
     const ground = new THREE.Mesh(planeGeo, planeMat);
-
     ground.rotateX(-3.1415926 / 2);
-    // ground.rotateZ(0.2);
     ground.position.y = -1;
-
     // scene.add(ground);
 
 
     const cubeGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-
     cube = new THREE.Mesh(cubeGeo, planeMat);
-
-
     cube.position.copy(new Vector3( -1.9223491145264011, -0.20982945849902454,0.9106574124212634))
     cube.rotateY( 2.6400000000000)
     cube.scale.copy(new Vector3(0.18644382951210073,0.18644382951210073,0.18644382951210073))
@@ -139,10 +166,10 @@ function init() {
 
 function onWindowResize() {
 
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = renderCanvas.offsetWidth / renderCanvas.offsetHeight;
     camera.updateProjectionMatrix();
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(renderCanvas.offsetWidth, renderCanvas.offsetHeight);
 
      render();
 
@@ -151,6 +178,7 @@ function onWindowResize() {
 function render() {
 
     requestAnimationFrame( render );
+    uniforms.viewMatrixInverse.value = camera.matrixWorldInverse
     SkyMesh.position.copy(camera.position);
 
     // console.log(cube.position)

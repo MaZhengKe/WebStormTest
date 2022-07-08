@@ -83,8 +83,12 @@ module.exports = {
                 options: {
                     name: '[name].[ext]',
                 }
+            },]
+        },
+            {
+                test: /\.glsl/i,
+                use: 'raw-loader',
             }]
-        }]
     }
 }
 ;
